@@ -1,0 +1,2 @@
+# 统一用 LF 换行，避免 Windows 本地和 GitHub Actions（Linux）之间产生无意义的全文件 diff
+* text=auto eol=lf
