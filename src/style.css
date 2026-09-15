@@ -1,0 +1,83 @@
+/* ========== CSS 变量 ========== */
+:root {
+  --bg: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text: #374151;
+  --text-secondary: #6b7280;
+  --heading: #111827;
+  --border: #e5e7eb;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-bg: #eff6ff;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --sidebar-bg: #f8f9fa;
+  --radius: 8px;
+
+  /* 文章阅读区 — 护眼纸质 */
+  --paper-bg: #fdfaf2;
+  --paper-text: #4a3f2e;
+  --paper-heading: #3a2f1f;
+  --paper-secondary: #8b7b61;
+  --paper-border: #e8dcc8;
+  --paper-code-bg: #f2ecdd;
+  --paper-blockquote-bg: #f8f3e5;
+  --paper-blockquote-border: #d4c5a0;
+
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  color-scheme: light dark;
+}
+
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --bg-secondary: #1e293b;
+  --text: #cbd5e1;
+  --text-secondary: #94a3b8;
+  --heading: #f1f5f9;
+  --border: #334155;
+  --accent: #60a5fa;
+  --accent-hover: #93bbfd;
+  --accent-bg: #1e3a5f;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --sidebar-bg: #1e293b;
+
+  --paper-bg: #1a1814;
+  --paper-text: #c9bd9e;
+  --paper-heading: #e3d5b8;
+  --paper-secondary: #8b7f65;
+  --paper-border: #3a3428;
+  --paper-code-bg: #252218;
+  --paper-blockquote-bg: #201d15;
+  --paper-blockquote-border: #5a4f38;
+}
+
+/* ========== 全局重置 ========== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+img {
+  max-width: 100%;
+}
