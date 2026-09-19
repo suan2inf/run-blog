@@ -55,9 +55,28 @@ const scrollElement = ref()
 // 文章已经在构建时全部读进内存，同步按 slug 查表即可，没有加载态
 const article = computed(() => getArticle(route.params.slug))
 
-// 给标题生成稳定 id，顺序不能变（同一次渲染里同一个标题必须拿到同一个 id）
-function headingId(text, index) {
-  return `h-${index}`
+// 给标题生成稳定 id。
+// 注意：不能依赖回调里的 index，库里传的是"已渲染标题数组的长度"，
+// 只要有一个标题被跳过，后面所有序号就整体错位——目录里链接指向 #h-5，
+// 而 DOM 上实际是 #h-6，getElementById 查不到，表现为"只有前几个能跳"。
+// 改成完全由标题文本推导，同文本必然同 id，跟渲染顺序和次数都无关。
+function headingId({ text }) {
+  const raw = String(text ?? '').trim()
+  const slug = raw
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  if (slug) {
+    // 纯数字开头时（"1 半自回归生成" → "1-半自回归生成"）加个前缀，
+    // 免得 id 以数字打头——那样 getElementById 能查到，但当 CSS 选择器是非法的
+    return /^[0-9]/.test(slug) ? `s-${slug}` : slug
+  }
+  // 全是标点/数学符号时退化成文本的哈希，仍然是确定性的
+  let hash = 0
+  for (let i = 0; i < raw.length; i += 1) {
+    hash = (hash * 31 + raw.charCodeAt(i)) | 0
+  }
+  return `h-${(hash >>> 0).toString(36)}`
 }
 
 // MdCatalog 会在 scrollElement 上加滚动监听、并调用它的 querySelector，
