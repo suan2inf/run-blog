@@ -80,18 +80,26 @@ function toSlug(path) {
   return path.split('/').pop().replace(/\.md$/i, '')
 }
 
-function estimateReadTime(content) {
-  const plain = content
+/** 去掉不该计入阅读量的东西：HTML 注释、代码块、LaTeX 公式。 */
+function stripNonProse(text) {
+  return String(text)
+    .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/[#*`>\-\[\]()!]/g, ' ')
-  const cjk = (plain.match(/[\u4e00-\u9fa5]/g) || []).length
-  const latin = (plain.match(/[A-Za-z0-9]+/g) || []).length
-  return Math.max(1, Math.round(cjk / CN_CHARS_PER_MINUTE + latin / WORDS_PER_MINUTE + 1))
+    .replace(/\$\$[\s\S]*?\$\$/g, ' ')
+    .replace(/\$[^$\n]*\$/g, ' ')
+}
+
+function estimateReadTime(content) {
+  const prose = stripNonProse(content)
+  const cjk = (prose.match(/[\u4e00-\u9fa5]/g) || []).length
+  const latin = (prose.match(/[A-Za-z0-9]+/g) || []).length
+  // 中文按字算、西文按词算，两个速度不同，各自除完再相加
+  const minutes = cjk / CN_CHARS_PER_MINUTE + latin / WORDS_PER_MINUTE
+  return Math.max(1, Math.round(minutes))
 }
 
 function autoSummary(content) {
-  return content
-    .replace(/```[\s\S]*?```/g, ' ')
+  return stripNonProse(content)
     .replace(/^#{1,6}\s+.*$/gm, ' ')
     .replace(/[#*`>\-\[\]()!]/g, ' ')
     .replace(/\s+/g, ' ')
