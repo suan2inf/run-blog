@@ -1,22 +1,36 @@
 <template>
-  <div class="article-shell">
-    <article class="article-detail" v-if="article">
-      <header class="article-header">
-        <h1>{{ article.title }}</h1>
-        <div class="article-meta">
-          <span>{{ formatDate(article.date) }}</span>
-          <span v-if="article.category" class="meta-category">{{ article.category }}</span>
+  <div class="article-shell" ref="shellRef">
+    <template v-if="article">
+      <aside class="article-toc" aria-label="文章目录">
+        <p class="toc-title">目录</p>
+        <MdCatalog
+          :editorId="EDITOR_ID"
+          :scrollElement="scrollElement"
+          :mdHeadingId="headingId"
+          :catalogMaxDepth="3"
+          :offsetTop="88"
+        />
+      </aside>
+
+      <article class="article-detail">
+        <header class="article-header">
+          <h1>{{ article.title }}</h1>
+          <div class="article-meta">
+            <span>{{ formatDate(article.date) }}</span>
+            <span v-if="article.category" class="meta-category">{{ article.category }}</span>
+          </div>
+        </header>
+        <div class="paper">
+          <div class="markdown-body">
+            <MdPreview :id="EDITOR_ID" :modelValue="article.content" :mdHeadingId="headingId" />
+          </div>
         </div>
-      </header>
-      <div class="paper">
-        <div class="markdown-body">
-          <MdPreview :modelValue="article.content" />
+        <div class="article-footer">
+          <router-link to="/blog" class="back-link">← 返回文章列表</router-link>
         </div>
-      </div>
-      <div class="article-footer">
-        <router-link to="/blog" class="back-link">← 返回文章列表</router-link>
-      </div>
-    </article>
+      </article>
+    </template>
+
     <div class="error" v-else>
       <p>文章不存在</p>
       <router-link to="/blog" class="back-link">← 返回文章列表</router-link>
@@ -25,16 +39,60 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getArticle } from '../data/articles'
-import { MdPreview } from 'md-editor-v3'
+import { MdPreview, MdCatalog } from 'md-editor-v3'
 import 'md-editor-v3/lib/preview.css'
 
+// MdPreview 和 MdCatalog 靠这个 id 配对；没有它目录不会渲染
+const EDITOR_ID = 'article-preview'
+
 const route = useRoute()
+const shellRef = ref(null)
+const scrollElement = ref()
 
 // 文章已经在构建时全部读进内存，同步按 slug 查表即可，没有加载态
 const article = computed(() => getArticle(route.params.slug))
+
+// 给标题生成稳定 id，顺序不能变（同一次渲染里同一个标题必须拿到同一个 id）
+function headingId(text, index) {
+  return `h-${index}`
+}
+
+// MdCatalog 会在 scrollElement 上加滚动监听、并调用它的 querySelector，
+// 所以必须传元素，不能传 window（会直接抛错）。
+// 页面本身是 window 滚动的，documentElement 就是它的滚动元素。
+function resolveScrollElement() {
+  scrollElement.value = document.documentElement
+}
+
+onBeforeUnmount(() => {
+  document.title = '算不尽的博客'
+})
+
+watch(
+  article,
+  current => {
+    resolveScrollElement()
+    document.title = current ? `${current.title} · 算不尽的博客` : '算不尽的博客'
+    setMeta('description', current?.summary || '')
+    setMeta('og:title', current?.title || '算不尽的博客', 'property')
+    setMeta('og:description', current?.summary || '', 'property')
+  },
+  { immediate: true }
+)
+
+function setMeta(name, content, attr = 'name') {
+  if (!content) return
+  let tag = document.head.querySelector(`meta[${attr}="${name}"]`)
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute(attr, name)
+    document.head.appendChild(tag)
+  }
+  tag.setAttribute('content', content)
+}
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
@@ -52,6 +110,8 @@ function formatDate(dateStr) {
    想收回紧凑阅读体验就写 780px。 */
 .article-shell {
   --article-width: 1040px;
+  --toc-width: 230px;
+  --shell-gap: 44px;
   width: 100%;
   max-width: var(--article-width);
   margin: 0 auto;
@@ -59,6 +119,75 @@ function formatDate(dateStr) {
 
 .article-detail {
   width: 100%;
+}
+
+/* 没有目录（窄屏）时目录容器整个不显示 */
+.article-toc {
+  display: none;
+}
+
+/* 只有"目录 + 正文"能排下、两侧还留得下边距时才让目录出场。
+   这样窄屏不会白留一列空白。:has() 不支持的浏览器会一直走单列，正文照样居中。 */
+@media (min-width: 1460px) {
+  .article-shell:has(.article-toc) {
+    display: grid;
+    /* 内容列锁死正文宽度，别让 grid 把正文拉宽 */
+    grid-template-columns: var(--toc-width) minmax(0, var(--article-width));
+    gap: var(--shell-gap);
+    justify-content: center;
+    max-width: none;
+  }
+
+  .article-toc {
+    display: block;
+    position: sticky;
+    top: 88px;
+    align-self: start;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.7;
+    padding-right: 4px;
+  }
+}
+
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-left: 12px;
+}
+
+/* MdCatalog 生成的目录链接 */
+.article-toc :deep(.md-editor-catalog-link) {
+  display: block;
+  padding: 4px 0 4px 12px;
+  border-left: 2px solid var(--border);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.article-toc :deep(.md-editor-catalog-link:hover) {
+  color: var(--accent);
+}
+
+.article-toc :deep(.md-editor-catalog-active > .md-editor-catalog-link) {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+/* 三级标题往里缩一档 */
+.article-toc :deep(.md-editor-catalog-link[data-level='3']) {
+  padding-left: 24px;
+}
+
+/* 长标题在目录里换行，不要撑破侧栏 */
+.article-toc :deep(span) {
+  display: inline;
 }
 
 .article-header {

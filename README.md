@@ -88,12 +88,30 @@ npm run preview
 
 ```
 content/articles/      文章 Markdown（你唯一需要天天碰的地方）
+drafts/                未定稿的草稿，不参与构建、不会发布
 scripts/               一次性工具脚本
+plugins/sitemap.js     构建时按文章列表生成 sitemap.xml 和 robots.txt
 src/data/articles.js   构建时读 md、解析 frontmatter、排序、搜索
 src/views/             Home / Blog / Article / About 四个页面
 src/components/        Navbar / ArticleCard
+src/plugins/katex.js   把 katex 注入 md-editor-v3，公式渲染不依赖 CDN
 .github/workflows/     自动部署流水线
 ```
+
+> `content/articles/` 下**任何** `.md` 都会被构建打包上线，没写完的放 `drafts/`。
+
+## 文章页的几个可调项
+
+`src/views/Article.vue` 的样式里：
+
+| 变量 / 规则 | 作用 |
+|---|---|
+| `--article-width: 1040px` | 正文宽度，改大改小都行 |
+| `--toc-width: 230px` | 左侧目录宽度 |
+| `@media (min-width: 1460px)` | 目录从多宽的屏幕开始显示，太窄会自动隐藏 |
+
+文章页右侧的目录由 md-editor-v3 的 `MdCatalog` 生成，靠 `editorId` 与 `MdPreview` 配对。
+**两个组件的 id 必须一致**，否则目录不渲染。
 
 ## 从旧版本迁移
 

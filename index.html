@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="算不尽的个人技术博客" />
+
+    <!-- 分享卡片：链接发到微信/群聊/Twitter 时能出标题和摘要。
+         文章页打开后 Article.vue 会把 og:title / og:description 覆盖成当前文章的内容。
+         注意 github.io 是共享域名，og:url 和 og:image 这里只能给通用的，
+         想要独立的卡片预览需要绑定自定义域名。 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="算不尽的博客" />
+    <meta property="og:title" content="算不尽的博客" />
+    <meta property="og:description" content="算不尽的个人技术博客" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+
     <title>算不尽的博客</title>
   </head>
   <body>

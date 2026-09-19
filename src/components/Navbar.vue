@@ -20,33 +20,46 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 const menuOpen = ref(false)
-const themeIcon = ref('🌙')
+const theme = ref('light')
 
 initTheme()
 
+function readStoredTheme() {
+  return localStorage.getItem('theme')
+}
+
+function systemPrefersDark() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+function applyTheme(next) {
+  theme.value = next
+  document.documentElement.dataset.theme = next
+}
+
 function initTheme() {
-  const saved = localStorage.getItem('theme')
-  if (saved) {
-    document.documentElement.dataset.theme = saved
-  } else {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light'
+  applyTheme(readStoredTheme() || (systemPrefersDark() ? 'dark' : 'light'))
+
+  // 用户没手动选过主题时，跟随系统切换（原来只读一次，系统改暗色网站不会跟）
+  const media = window.matchMedia('(prefers-color-scheme: dark)')
+  const onChange = event => {
+    if (!readStoredTheme()) applyTheme(event.matches ? 'dark' : 'light')
   }
-  themeIcon.value = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙'
+  media.addEventListener('change', onChange)
+  onBeforeUnmount(() => media.removeEventListener('change', onChange))
 }
 
 function toggleTheme() {
-  const current = document.documentElement.dataset.theme
-  const next = current === 'dark' ? 'light' : 'dark'
-  document.documentElement.dataset.theme = next
+  const next = theme.value === 'dark' ? 'light' : 'dark'
+  applyTheme(next)
   localStorage.setItem('theme', next)
-  themeIcon.value = next === 'dark' ? '☀️' : '🌙'
 }
 
-const themeLabel = document.documentElement.dataset.theme === 'dark' ? '切换亮色' : '切换暗色'
+const themeIcon = computed(() => (theme.value === 'dark' ? '☀️' : '🌙'))
+const themeLabel = computed(() => (theme.value === 'dark' ? '切换亮色' : '切换暗色'))
 </script>
 
 <style scoped>
@@ -87,7 +100,7 @@ const themeLabel = document.documentElement.dataset.theme === 'dark' ? '切换�
 }
 
 .nav-links a:hover,
-.nav-links a.router-link-active {
+.nav-links a.router-link-exact-active {
   background: var(--accent-bg);
   color: var(--accent);
 }
