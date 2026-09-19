@@ -131,8 +131,10 @@ h1 {
 }
 
 .info-card {
-  background: var(--paper-bg);
-  border: 1px solid var(--paper-border);
+  /* 原来用的是 paper 那套米黄底，已经跟正文一起去掉色块了，
+     这里改用页面自带的次级底色，卡片边界还看得见 */
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px 24px;
 }

@@ -92,12 +92,12 @@ function formatDate(dateStr) {
   font-size: 12px;
 }
 
+/* 正文不再套独立的背景层。
+   之前这里是米黄底 + 边框 + 阴影，等于在白底页面上贴了一张"纸"，
+   正文和正文之外是两种颜色，怎么调都不协调。现在让它直接落在页面底色上，
+   只保留左右内边距，避免文字紧贴容器边缘。 */
 .paper {
-  background: var(--paper-bg);
-  border: 1px solid var(--paper-border);
-  border-radius: 4px;
-  padding: 40px 44px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 8px 24px 0;
 }
 
 .markdown-body {
@@ -246,7 +246,7 @@ function formatDate(dateStr) {
 
 @media (max-width: 767px) {
   .paper {
-    padding: 24px 18px;
+    padding: 8px 4px 0;
   }
   .article-header h1 { font-size: 24px; }
 }
