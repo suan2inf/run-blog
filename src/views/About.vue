@@ -42,7 +42,7 @@
 </template>
 
 <style scoped>
-.about { max-width: 640px; }
+.about { max-width: 640px; margin: 0 auto; }
 
 h1 {
   font-size: 28px;

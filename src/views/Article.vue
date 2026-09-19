@@ -1,25 +1,27 @@
 <template>
-  <article class="article-detail" v-if="article">
-    <header class="article-header">
-      <h1>{{ article.title }}</h1>
-      <div class="article-meta">
-        <span>{{ formatDate(article.date) }}</span>
-        <span v-if="article.category" class="meta-category">{{ article.category }}</span>
-        <span>{{ article.readTime }} 分钟阅读</span>
+  <div class="article-shell">
+    <article class="article-detail" v-if="article">
+      <header class="article-header">
+        <h1>{{ article.title }}</h1>
+        <div class="article-meta">
+          <span>{{ formatDate(article.date) }}</span>
+          <span v-if="article.category" class="meta-category">{{ article.category }}</span>
+          <span>{{ article.readTime }} 分钟阅读</span>
+        </div>
+      </header>
+      <div class="paper">
+        <div class="markdown-body">
+          <MdPreview :modelValue="article.content" />
+        </div>
       </div>
-    </header>
-    <div class="paper">
-      <div class="markdown-body">
-        <MdPreview :modelValue="article.content" />
+      <div class="article-footer">
+        <router-link to="/blog" class="back-link">← 返回文章列表</router-link>
       </div>
-    </div>
-    <div class="article-footer">
+    </article>
+    <div class="error" v-else>
+      <p>文章不存在</p>
       <router-link to="/blog" class="back-link">← 返回文章列表</router-link>
     </div>
-  </article>
-  <div class="error" v-else>
-    <p>文章不存在</p>
-    <router-link to="/blog" class="back-link">← 返回文章列表</router-link>
   </div>
 </template>
 
@@ -46,7 +48,18 @@ function formatDate(dateStr) {
 </script>
 
 <style scoped>
-.article-detail { max-width: 780px; }
+/* 正文宽度：改这一个数字就能调宽窄。
+   想让中文一行更多字就往大调（例如 60rem），一行 35~45 个汉字最好读。 */
+.article-shell {
+  --article-width: 780px;
+  width: 100%;
+  max-width: var(--article-width);
+  margin: 0 auto;
+}
+
+.article-detail {
+  width: 100%;
+}
 
 .article-header {
   margin-bottom: 32px;

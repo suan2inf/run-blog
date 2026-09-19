@@ -35,6 +35,9 @@ const articles = getArticles(6)
 </script>
 
 <style scoped>
+/* 与博客列表页同宽，避免宽屏下首页内容比别的页面更散 */
+.landing { max-width: 1200px; margin: 0 auto; }
+
 /* Hero */
 .hero {
   padding: 80px 0 64px;
