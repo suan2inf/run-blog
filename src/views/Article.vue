@@ -6,7 +6,6 @@
         <div class="article-meta">
           <span>{{ formatDate(article.date) }}</span>
           <span v-if="article.category" class="meta-category">{{ article.category }}</span>
-          <span>{{ article.readTime }} 分钟阅读</span>
         </div>
       </header>
       <div class="paper">

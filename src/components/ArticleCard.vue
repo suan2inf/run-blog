@@ -6,7 +6,6 @@
       <div class="card-meta">
         <span class="card-date">{{ formatDate(article.date) }}</span>
         <span class="card-category" v-if="article.category">{{ article.category }}</span>
-        <span class="card-readtime">{{ article.readTime }} 分钟阅读</span>
       </div>
     </div>
   </article>
