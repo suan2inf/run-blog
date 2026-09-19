@@ -24,11 +24,21 @@
   --paper-blockquote-bg: #f8f3e5;
   --paper-blockquote-border: #d4c5a0;
 
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* 字体栈：西文优先，后面跟中文字体。
+     浏览器会逐字符挑第一个有该字形的字体，所以中文会落到 PingFang SC / 微软雅黑，
+     而不是像原来那样写一堆西文字体后直接 sans-serif（中文只能吃系统默认，字形和字重都对不上）。
+     最后两个是 Windows / macOS 的中文字体兜底。 */
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
+    'Source Han Sans SC', 'Noto Sans CJK SC',
+    system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: var(--text);
   color-scheme: light dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 [data-theme="dark"] {

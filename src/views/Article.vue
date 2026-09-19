@@ -101,8 +101,23 @@ function formatDate(dateStr) {
 
 .markdown-body {
   font-size: 17px;
-  line-height: 2;
+  /* 中文正文行高 1.8 左右最舒服；2.0 在 17px 下显得散 */
+  line-height: 1.85;
   color: var(--paper-text);
+  /* 长串（URL、长公式、长标识符）不撑破正文 */
+  overflow-wrap: break-word;
+}
+
+/* 长公式/长代码不撑破正文，只在必要时横向滚动 */
+.markdown-body :deep(.katex-display) {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+}
+
+/* 行内公式跟中文之间留一点呼吸，避免挤在一起 */
+.markdown-body :deep(.katex) {
+  font-size: 1.02em;
 }
 
 /* md-editor-v3 预览样式覆盖 */
@@ -128,7 +143,12 @@ function formatDate(dateStr) {
 
 .markdown-body :deep(p) {
   margin-bottom: 20px;
-  text-align: justify;
+  /* 不要 text-align: justify。
+     中文段落两端对齐后，遇到行内公式、英文术语、行内代码这些不可断开的片段，
+     浏览器只能靠拉伸字间距把行撑满，行内会出现很明显的空洞。
+     左对齐（默认）在混排场景下稳定得多。 */
+  text-align: left;
+  text-wrap: pretty;
 }
 
 .markdown-body :deep(pre) {
