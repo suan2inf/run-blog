@@ -24,7 +24,9 @@ import Navbar from './components/Navbar.vue'
 .main {
   flex: 1;
   padding: 40px 48px;
-  max-width: 1280px;
+  /* 外壳放宽到 1600px，让宽屏下正文和小伙伴页都有伸展空间。
+     原来 1280px 会把可用宽度卡在 1184px，正文再怎么调也宽不起来。 */
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
 }

@@ -111,7 +111,7 @@ function search() {
 </script>
 
 <style scoped>
-.blog { max-width: 1200px; margin: 0 auto; }
+.blog { width: 100%; margin: 0 auto; }
 
 .blog-head {
   display: flex;

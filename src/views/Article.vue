@@ -49,9 +49,10 @@ function formatDate(dateStr) {
 
 <style scoped>
 /* 正文宽度：改这一个数字就能调宽窄。
-   想让中文一行更多字就往大调（例如 60rem），一行 35~45 个汉字最好读。 */
+   1040px 下正文约 950px，一行约 55 个汉字；技术长文带公式和表格时这个宽度更合适。
+   想收回紧凑阅读体验就写 780px。 */
 .article-shell {
-  --article-width: 780px;
+  --article-width: 1040px;
   width: 100%;
   max-width: var(--article-width);
   margin: 0 auto;
