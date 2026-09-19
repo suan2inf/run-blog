@@ -1,6 +1,6 @@
 <template>
   <header class="navbar">
-    <router-link to="/" class="brand">DSM</router-link>
+    <router-link to="/" class="brand">Suan2INF</router-link>
 
     <nav class="nav-links" :class="{ open: menuOpen }">
       <router-link to="/" @click="menuOpen = false">首页</router-link>
@@ -78,11 +78,15 @@ const themeLabel = computed(() => (theme.value === 'dark' ? '切换亮色' : '�
 }
 
 .brand {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--heading);
   text-decoration: none;
+  transition: color 0.15s;
 }
+
+.brand:hover { color: var(--accent); }
 
 .nav-links {
   display: flex;

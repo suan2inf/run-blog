@@ -5,13 +5,16 @@
       <router-view />
     </main>
     <footer class="footer">
-      <p>© 2025 算不尽 · Vue 3 + Vite · 静态托管于 GitHub Pages</p>
+      <p>© {{ year }} 算不尽 · Vue 3 + Vite · 静态托管于 GitHub Pages</p>
     </footer>
   </div>
 </template>
 
 <script setup>
 import Navbar from './components/Navbar.vue'
+
+// 别写死年份，否则跨年就过期
+const year = new Date().getFullYear()
 </script>
 
 <style scoped>

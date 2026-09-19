@@ -36,15 +36,17 @@ function formatDate(dateStr) {
 
 <style scoped>
 .card {
+  /* 卡片和页面同色，用边框区分；hover 时才浮起来 */
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
 }
 .card:hover {
   box-shadow: var(--card-hover-shadow);
+  border-color: var(--accent);
   transform: translateY(-2px);
 }
 
