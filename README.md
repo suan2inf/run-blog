@@ -79,10 +79,19 @@ npm run preview
 1. 在 GitHub 新建仓库，名字必须是 `run-blog`（和 `vite.config.js` 里的 `base` 一致）
 2. 推代码到 `main` 分支
 3. 仓库 **Settings → Pages → Source** 选 **GitHub Actions**
-4. 等 Actions 跑完，访问 `https://<你的用户名>.github.io/run-blog/`
+4. 仓库 **Settings → Actions → General → Workflow permissions**
+   选 **Read and write permissions**，保存
+
+> ⚠️ 第 4 步很容易漏。默认的 "Read repository contents" 权限下，
+> `deploy` 步骤拿不到 `id-token`，会在 6 秒内失败，而 `build` 步骤是成功的
+> ——表现为"构建过了但部署失败"。跳过这步的话，流水线必须重跑一次才会生效。
+
+5. 等 Actions 跑完，访问 `https://<你的用户名>.github.io/run-blog/`
 
 > 如果仓库名不是 `run-blog`，把 `vite.config.js` 里的 `base` 改成 `/<仓库名>/`。
 > 如果绑定了自定义域名，把 `base` 改成 `'/'`。
+>
+> GitHub Pages 对 `index.html` 有缓存，更新后看不到变化就先 `Ctrl+Shift+R` 强刷。
 
 ## 目录结构
 
