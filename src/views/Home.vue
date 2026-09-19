@@ -90,6 +90,31 @@ function formatDate(dateStr) {
   z-index: 1;
 }
 
+/* 点阵纹理：只有宽屏才出现。
+   窄屏上同样大小的点会显得很密、像噪点，所以直接从 none 起步；
+   出现时用 mask 从中心向外淡出，免得露出一个矩形边界。 */
+.hero::after {
+  content: '';
+  display: none;
+  position: absolute;
+  top: -140px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 560px;
+  background-image: radial-gradient(circle, var(--bg-dot) 1px, transparent 1.6px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(ellipse 46% 62% at 50% 46%, #000 0%, transparent 74%);
+  mask-image: radial-gradient(ellipse 46% 62% at 50% 46%, #000 0%, transparent 74%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (min-width: 1280px) {
+  .hero::after { display: block; }
+}
+
 .hero-title {
   font-size: 48px;
   font-weight: 800;

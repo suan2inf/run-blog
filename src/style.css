@@ -27,6 +27,13 @@
   --paper-blockquote-bg: var(--bg-secondary);
   --paper-blockquote-border: var(--border);
 
+  /* 页面背景
+     blob：两团大范围、极低饱和度的彩色光晕，给页面一点色调倾向
+     dot：点阵纹理的颜色 */
+  --bg-blob-1: #dbeafe;
+  --bg-blob-2: #e0e7ff;
+  --bg-dot: #cbd5e1;
+
   /* 字体栈：西文优先，后面跟中文字体。
      浏览器会逐字符挑第一个有该字形的字体，所以中文会落到 PingFang SC / 微软雅黑，
      而不是像原来那样写一堆西文字体后直接 sans-serif（中文只能吃系统默认，字形和字重都对不上）。
@@ -57,6 +64,11 @@
   --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   --sidebar-bg: #1e293b;
+
+  /* 深色底上要更亮一点才看得出来，同时保持很低的饱和度 */
+  --bg-blob-1: #1e3a8a;
+  --bg-blob-2: #312e81;
+  --bg-dot: #334155;
 
   /* 与亮色一致：不再单独给正文套一层底色 */
   --paper-bg: transparent;

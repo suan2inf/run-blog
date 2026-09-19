@@ -22,6 +22,15 @@ const year = new Date().getFullYear()
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* 页面背景：底色 + 三团大范围柔光。
+     都是极低饱和度的径向渐变，叠在底色上，中间过渡到透明，
+     所以不会出现色块边界。铺在最外层容器上，页脚也一起覆盖。 */
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1100px 620px at 12% -8%, var(--bg-blob-1) 0%, transparent 62%),
+    radial-gradient(1000px 580px at 90% 2%, var(--bg-blob-2) 0%, transparent 60%),
+    radial-gradient(1300px 700px at 50% 118%, var(--bg-blob-1) 0%, transparent 68%);
+  background-repeat: no-repeat;
 }
 
 .main {
@@ -39,6 +48,8 @@ const year = new Date().getFullYear()
   padding: 32px 48px;
   border-top: 1px solid var(--border);
   margin-top: 80px;
+  /* 透明，让上面的背景一路铺到底，避免底部出现一条颜色断层的横带 */
+  background: transparent;
 }
 
 .footer p {
