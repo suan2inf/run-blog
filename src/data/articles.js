@@ -1,135 +1,56 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+// 构建期生成的文章元数据清单（标题/日期/摘要/标签/阅读时长/字数），见 plugins/articles-manifest.js
+import manifest from 'virtual:articles-manifest'
+import { parseFrontmatter, toSlug } from './text-utils'
 
 /**
- * 数据层：构建时读取 content/articles/*.md，没有后端、没有运行时请求。
+ * 数据层：元数据随主 bundle 走（构建期内嵌），正文懒加载。
  *
- * 靠 Vite 的 import.meta.glob 在打包时把文件内容直接编进 JS，
- * 所以 npm run build 出来的就是纯粹的静态文件。
+ * 早先版本是 import.meta.glob(..., { eager: true }) 把全部 md 正文打进主 JS，
+ * 文章一多首屏就得为没读到的文章买单。现在每篇 .md 是独立 chunk：
+ *   - 打开文章页 → 只拉那一篇的正文（loadArticleContent）
+ *   - 博客页用到全文搜索 → 一次性把全部正文拉下来（ensureFullTextIndex）
+ * 元数据（含阅读时长、字数）始终在本地，列表/首页渲染不需要任何网络请求。
  *
  * 一篇文章的结构（Article）：
  *   slug     文件名（不含 .md），同时是 URL 里的标识，建议用英文
  *   title    标题，取 frontmatter 的 title
  *   date     日期字符串 YYYY-MM-DD
- *   summary  摘要，取 frontmatter 的 summary，没写就自动截正文
- *   category 分类名（可选，仅作文案展示，不再参与筛选）
- *   tags     标签数组（可选）
- *   content  正文 Markdown（不含 frontmatter）
- *   readTime 预估阅读分钟数
+ *   summary  摘要，取 frontmatter 的 summary，没写就构建时自动截正文
+ *   category 分类名（可选，仅作文案展示）
+ *   tags     标签数组（可选，可在博客页按标签筛选）
+ *   readTime 预估阅读分钟数（构建时算好）
+ *   wordCount 估算字数（构建时算好，中文字 + 西文词）
+ * 注意：文章对象上没有 content 字段了，正文走 loadArticleContent(slug)。
  */
-const RAW_FILES = import.meta.glob('../../content/articles/*.md', {
+
+// 正文加载器：非 eager 的 glob，每篇 md 一个独立 chunk
+const CONTENT_LOADERS = import.meta.glob('../../content/articles/*.md', {
   query: '?raw',
   import: 'default',
-  eager: true,
 })
 
-const WORDS_PER_MINUTE = 400
-const CN_CHARS_PER_MINUTE = 400
+const contentCache = new Map()
 
-/** 解析 frontmatter，只支持 key: value 和 [a, b] 两种写法，够用且无依赖。 */
-function parseFrontmatter(raw) {
-  const text = String(raw)
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text)
+/** 拉取某篇文章的正文（不含 frontmatter），带缓存。 */
+export async function loadArticleContent(slug) {
+  if (contentCache.has(slug)) return contentCache.get(slug)
 
-  if (!match) {
-    return { data: {}, content: text.trim() }
-  }
+  const entry = Object.entries(CONTENT_LOADERS).find(([path]) => toSlug(path) === slug)
+  if (!entry) return ''
 
-  const data = {}
-  for (const line of match[1].split(/\r?\n/)) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-
-    const sep = trimmed.indexOf(':')
-    if (sep === -1) continue
-
-    const key = trimmed.slice(0, sep).trim()
-    if (key.startsWith('#')) continue
-    const value = trimmed.slice(sep + 1).trim()
-    data[key] = parseValue(value)
-  }
-
-  return { data, content: text.slice(match[0].length).trim() }
+  const raw = await entry[1]()
+  const { content } = parseFrontmatter(String(raw))
+  contentCache.set(slug, content)
+  return content
 }
 
-function parseValue(value) {
-  if (!value) return ''
-
-  // [a, b, c]
-  if (value.startsWith('[') && value.endsWith(']')) {
-    return value
-      .slice(1, -1)
-      .split(',')
-      .map(item => unquote(item.trim()))
-      .filter(Boolean)
-  }
-
-  return unquote(value)
-}
-
-function unquote(value) {
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1)
-  }
-  return value
-}
-
-function toSlug(path) {
-  return path.split('/').pop().replace(/\.md$/i, '')
-}
-
-/** 去掉不该计入阅读量的东西：HTML 注释、代码块、LaTeX 公式。 */
-function stripNonProse(text) {
-  return String(text)
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/\$\$[\s\S]*?\$\$/g, ' ')
-    .replace(/\$[^$\n]*\$/g, ' ')
-}
-
-function estimateReadTime(content) {
-  const prose = stripNonProse(content)
-  const cjk = (prose.match(/[\u4e00-\u9fa5]/g) || []).length
-  const latin = (prose.match(/[A-Za-z0-9]+/g) || []).length
-  // 中文按字算、西文按词算，两个速度不同，各自除完再相加
-  const minutes = cjk / CN_CHARS_PER_MINUTE + latin / WORDS_PER_MINUTE
-  return Math.max(1, Math.round(minutes))
-}
-
-function autoSummary(content) {
-  return stripNonProse(content)
-    .replace(/^#{1,6}\s+.*$/gm, ' ')
-    .replace(/[#*`>\-\[\]()!]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 100)
-}
-
-function buildArticle(path, raw) {
-  const { data, content } = parseFrontmatter(raw)
-
-  return {
-    slug: toSlug(path),
-    title: data.title || toSlug(path),
-    date: String(data.date || ''),
-    summary: data.summary || autoSummary(content),
-    category: data.category || '',
-    tags: Array.isArray(data.tags) ? data.tags : [],
-    content,
-    readTime: estimateReadTime(content),
-  }
-}
-
-/** 全部文章，按日期由新到旧。 */
+/** 全部文章（元数据），按日期由新到旧——构建清单时已经排好，这里只是防手滑。 */
 export const allArticles = computed(() =>
-  Object.entries(RAW_FILES)
-    .map(([path, raw]) => buildArticle(path, raw))
-    .sort((a, b) => {
-      if (a.date === b.date) return a.slug.localeCompare(b.slug)
-      return a.date < b.date ? 1 : -1
-    })
+  [...manifest].sort((a, b) => {
+    if (a.date === b.date) return a.slug.localeCompare(b.slug)
+    return a.date < b.date ? 1 : -1
+  })
 )
 
 export function getArticles(limit) {
@@ -140,15 +61,62 @@ export function getArticle(slug) {
   return allArticles.value.find(article => article.slug === slug) || null
 }
 
-/** 纯前端搜索：标题、摘要、分类、正文全文匹配。 */
+/**
+ * 上一篇/下一篇。列表按日期由新到旧排，
+ * 所以「上一篇」是更新的那篇（索引 -1），「下一篇」是更旧的（索引 +1）。
+ */
+export function getPrevNext(slug) {
+  const list = allArticles.value
+  const index = list.findIndex(article => article.slug === slug)
+  if (index === -1) return { prev: null, next: null }
+  return {
+    prev: index > 0 ? list[index - 1] : null,
+    next: index < list.length - 1 ? list[index + 1] : null,
+  }
+}
+
+/** 全部标签及文章数，按数量降序，给博客页的标签筛选用。 */
+export const allTags = computed(() => {
+  const counts = new Map()
+  for (const article of allArticles.value) {
+    for (const tag of article.tags) {
+      counts.set(tag, (counts.get(tag) || 0) + 1)
+    }
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+})
+
+/* ---------- 全文搜索索引 ----------
+   正文是懒加载的，所以全文索引也是：第一次搜索时把所有正文拉下来。
+   fullTextReady 是响应式的，就绪后搜索结果会自动补全「正文命中」的文章。 */
+export const fullTextReady = ref(false)
+let fullTextLoading = null
+
+export function ensureFullTextIndex() {
+  if (fullTextReady.value) return Promise.resolve()
+  if (!fullTextLoading) {
+    fullTextLoading = Promise.all(
+      allArticles.value.map(article => loadArticleContent(article.slug))
+    ).then(() => {
+      fullTextReady.value = true
+    })
+  }
+  return fullTextLoading
+}
+
+/**
+ * 纯前端搜索：标题、摘要、分类、标签匹配；全文索引就绪后还包括正文。
+ * fullTextReady 为 false 时退化为只搜元数据（索引马上就好，差别转瞬即逝）。
+ */
 export function searchArticles(keyword) {
   const query = String(keyword || '').trim().toLowerCase()
   if (!query) return allArticles.value
 
-  return allArticles.value.filter(article =>
-    [article.title, article.summary, article.category, article.content]
-      .join('\n')
-      .toLowerCase()
-      .includes(query)
-  )
+  return allArticles.value.filter(article => {
+    const fields = [article.title, article.summary, article.category, article.tags.join(' ')]
+    if (fullTextReady.value) fields.push(contentCache.get(article.slug) || '')
+    return fields.join('\n').toLowerCase().includes(query)
+  })
 }

@@ -45,7 +45,7 @@ git push
 | `date` | 是 | 格式 `YYYY-MM-DD`，用于排序（新的在前） |
 | `summary` | 否 | 列表页摘要，不写就自动截正文前 100 字 |
 | `category` | 否 | 分类名，仅作文案展示 |
-| `tags` | 否 | 标签数组，写法 `[A, B]` |
+| `tags` | 否 | 标签数组，写法 `[A, B]`；显示在卡片和文章页，可在博客页按标签筛选 |
 
 正文从 frontmatter 下面的第一个 `---` 之后开始。
 
@@ -98,9 +98,13 @@ npm run preview
 ```
 content/articles/      文章 Markdown（你唯一需要天天碰的地方）
 drafts/                未定稿的草稿，不参与构建、不会发布
-scripts/               一次性工具脚本
+scripts/               一次性工具脚本（含 og-cover.html，分享卡片的源文件）
 plugins/sitemap.js     构建时按文章列表生成 sitemap.xml 和 robots.txt
-src/data/articles.js   构建时读 md、解析 frontmatter、排序、搜索
+plugins/feed.js        构建时生成 RSS 订阅源 feed.xml
+plugins/articles-manifest.js  构建时生成文章元数据清单（正文懒加载的前提）
+src/data/articles.js   构建时读 md、解析 frontmatter、排序、搜索、标签
+src/composables/       全局主题状态等跨组件逻辑
+src/utils/             格式化小工具
 src/views/             Home / Blog / Article / About 四个页面
 src/components/        Navbar / ArticleCard
 src/plugins/katex.js   把 katex 注入 md-editor-v3，公式渲染不依赖 CDN

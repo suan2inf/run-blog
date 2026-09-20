@@ -5,7 +5,9 @@
     <!-- 个人介绍 -->
     <section class="intro">
       <h2>关于我</h2>
-      <p>我叫算不尽，这是我的个人博客，主要写技术学习与踩坑记录，欢迎交流。</p>
+      <p>我是一名普通的大学生，平时对 AI 系统、推理引擎这些方向比较感兴趣，正在学习中。</p>
+      <p>这个博客算是我的学习笔记，也兼作作品集。读论文、做东西、踩坑的过程都会记在这里——一方面倒逼自己把学过的东西想明白、讲清楚；另一方面以后找工作时，这里比简历上的几行字更能说明我学过什么。</p>
+      <p>文章难免有错漏，如果发现了问题，欢迎通过下面的方式告诉我，非常感谢。</p>
     </section>
 
     <!-- 联系方式 -->
@@ -45,10 +47,22 @@
 .about { max-width: 640px; margin: 0 auto; }
 
 h1 {
+  display: flex;
+  align-items: center;
   font-size: 28px;
   font-weight: 700;
   color: var(--heading);
   margin-bottom: 36px;
+}
+
+/* 全站统一的标题记号：品牌色短竖线 */
+h1::before {
+  content: '';
+  width: 4px;
+  height: 22px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-soft));
+  margin-right: 12px;
 }
 
 .intro { margin-bottom: 48px; }
@@ -109,6 +123,7 @@ h1 {
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
+  font-family: var(--font-mono);
   flex-shrink: 0;
 }
 

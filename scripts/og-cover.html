@@ -1,0 +1,107 @@
+<!doctype html>
+<!--
+  OG 分享卡片源文件（1200×630）。
+  重新生成：npm run preview 起服务后没法直接截它，用 Edge 无头截本地文件即可——
+  & "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new \
+    --disable-gpu --window-size=1200,630 --screenshot=public/og-cover.png \
+    "file:///绝对路径/scripts/og-cover.html"
+  字体用的是系统自带的微软雅黑，换机器生成时注意字体差异。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    position: relative;
+    font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: linear-gradient(128deg, #17122e 0%, #2a1554 55%, #3b1a70 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 92px;
+  }
+  /* 两团柔光，和网站背景同一套手法 */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(620px 360px at 12% 0%, rgba(167, 139, 250, 0.22) 0%, transparent 62%),
+      radial-gradient(700px 420px at 108% 110%, rgba(139, 92, 246, 0.20) 0%, transparent 65%);
+  }
+  .brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .brand svg { width: 64px; height: 64px; }
+  .brand span {
+    font-family: Consolas, monospace;
+    font-size: 26px;
+    color: #a89cd6;
+    letter-spacing: 0.06em;
+  }
+  h1 {
+    position: relative;
+    margin-top: 40px;
+    font-size: 88px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.01em;
+  }
+  .subtitle {
+    position: relative;
+    margin-top: 22px;
+    font-size: 34px;
+    color: #cfc6f2;
+  }
+  .url {
+    position: absolute;
+    left: 92px;
+    bottom: 56px;
+    font-family: Consolas, monospace;
+    font-size: 23px;
+    color: #8f83c0;
+    letter-spacing: 0.04em;
+  }
+  /* 右侧的大号 ∞ 水印 */
+  .watermark {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-8deg);
+    width: 460px;
+    height: 460px;
+    opacity: 0.34;
+  }
+</style>
+</head>
+<body>
+  <svg class="watermark" viewBox="0 0 48 48" fill="none">
+    <path d="M24 24 C28 16 37 16 37 24 C37 32 28 32 24 24 C20 32 11 32 11 24 C11 16 20 16 24 24 Z"
+          stroke="#d8ccff" stroke-width="2.6" stroke-linejoin="round"/>
+  </svg>
+
+  <div class="brand">
+    <svg viewBox="0 0 48 48" fill="none">
+      <defs>
+        <linearGradient id="g" x1="11" y1="16" x2="37" y2="32" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#c4b5fd"/>
+          <stop offset="1" stop-color="#8b5cf6"/>
+        </linearGradient>
+      </defs>
+      <path d="M24 24 C28 16 37 16 37 24 C37 32 28 32 24 24 C20 32 11 32 11 24 C11 16 20 16 24 24 Z"
+            stroke="url(#g)" stroke-width="5" stroke-linejoin="round"/>
+    </svg>
+    <span>Suan2INF</span>
+  </div>
+
+  <h1>算不尽的博客</h1>
+  <p class="subtitle">一名普通大学生的学习笔记</p>
+
+  <p class="url">suan2inf.github.io/run-blog</p>
+</body>
+</html>

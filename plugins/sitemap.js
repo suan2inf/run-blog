@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { parseFrontmatter } from '../src/data/text-utils.js'
 
 /**
  * 构建时生成 sitemap.xml 和 robots.txt。
@@ -25,24 +26,11 @@ function readArticles(articlesDir) {
   return files
     .map(name => {
       const raw = readFileSync(join(articlesDir, name), 'utf8')
-      const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw)
-      const front = {}
-
-      if (match) {
-        for (const line of match[1].split(/\r?\n/)) {
-          const sep = line.indexOf(':')
-          if (sep > 0) {
-            front[line.slice(0, sep).trim()] = line
-              .slice(sep + 1)
-              .trim()
-              .replace(/^["']|["']$/g, '')
-          }
-        }
-      }
+      const { data } = parseFrontmatter(raw)
 
       return {
         slug: name.replace(/\.md$/i, ''),
-        date: /^\d{4}-\d{2}-\d{2}$/.test(front.date || '') ? front.date : '',
+        date: /^\d{4}-\d{2}-\d{2}$/.test(String(data.date || '')) ? String(data.date) : '',
       }
     })
     .sort((a, b) => (a.date < b.date ? 1 : -1))

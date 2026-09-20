@@ -4,5 +4,9 @@ import './style.css'
 import './plugins/katex'
 import App from './App.vue'
 import router from './router'
+import { initTheme } from './composables/useTheme'
+
+// index.html 的内联脚本已经设过 data-theme 防闪烁，这里读入状态并挂「跟随系统」监听
+initTheme()
 
 createApp(App).use(router).mount('#app')

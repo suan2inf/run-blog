@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="算不尽的个人技术博客" />
+    <meta name="description" content="一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。" />
 
     <!-- 分享卡片：链接发到微信/群聊/Twitter 时能出标题和摘要。
          文章页打开后 Article.vue 会把 og:title / og:description 覆盖成当前文章的内容。
@@ -13,12 +13,29 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="算不尽的博客" />
     <meta property="og:title" content="算不尽的博客" />
-    <meta property="og:description" content="算不尽的个人技术博客" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:description" content="一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。" />
+    <meta property="og:image" content="https://suan2inf.github.io/run-blog/og-cover.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="alternate" type="application/rss+xml" title="算不尽的博客" href="./feed.xml" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
 
     <title>算不尽的博客</title>
+
+    <!-- 首屏主题：在样式计算前把 data-theme 设好。
+         不内联的话，暗色用户会先看到一帧白底、JS 加载完才变暗。 -->
+    <script>
+      ;(function () {
+        var t = null
+        try {
+          t = localStorage.getItem('theme')
+        } catch (e) {}
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = t
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>
