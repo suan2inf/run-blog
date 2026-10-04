@@ -1,48 +1,45 @@
 import { computed, ref } from 'vue'
 // 构建期生成的文章元数据清单（标题/日期/摘要/标签/阅读时长/字数），见 plugins/articles-manifest.js
 import manifest from 'virtual:articles-manifest'
-import { parseFrontmatter, toSlug } from './text-utils'
+import { toSlug } from './text-utils'
 
 /**
- * 数据层：元数据随主 bundle 走（构建期内嵌），正文懒加载。
+ * 数据层：元数据随主 bundle 走（构建期内嵌），正文按篇懒加载。
  *
- * 早先版本是 import.meta.glob(..., { eager: true }) 把全部 md 正文打进主 JS，
- * 文章一多首屏就得为没读到的文章买单。现在每篇 .md 是独立 chunk：
- *   - 打开文章页 → 只拉那一篇的正文（loadArticleContent）
- *   - 博客页用到全文搜索 → 一次性把全部正文拉下来（ensureFullTextIndex）
- * 元数据（含阅读时长、字数）始终在本地，列表/首页渲染不需要任何网络请求。
+ * 正文是构建时已经渲染好的 HTML（plugins/markdown.js），每篇一个 chunk：
+ *   - 路由守卫在进入文章页之前 await loadArticleContent，所以组件里同步读缓存就行，
+ *     预渲染（服务端）和浏览器水合拿到的是同一份数据，不会出现「先空白再出正文」
+ *   - 博客页用到全文搜索 → 拉一次 virtual:search-index（纯文本，独立 chunk）
  *
- * 一篇文章的结构（Article）：
- *   slug     文件名（不含 .md），同时是 URL 里的标识，建议用英文
- *   title    标题，取 frontmatter 的 title
- *   date     日期字符串 YYYY-MM-DD
- *   summary  摘要，取 frontmatter 的 summary，没写就构建时自动截正文
- *   category 分类名（可选，仅作文案展示）
- *   tags     标签数组（可选，可在博客页按标签筛选）
- *   readTime 预估阅读分钟数（构建时算好）
- *   wordCount 估算字数（构建时算好，中文字 + 西文词）
- * 注意：文章对象上没有 content 字段了，正文走 loadArticleContent(slug)。
+ * 一篇文章的元数据（Article）：
+ *   slug / title / date(YYYY-MM-DD) / summary / category / tags / readTime / wordCount
+ * 正文（ArticleContent）：
+ *   html  渲染好的正文 HTML
+ *   toc   目录 [{ id, text, depth }]，depth 0 是最浅一级
  */
 
-// 正文加载器：非 eager 的 glob，每篇 md 一个独立 chunk
-const CONTENT_LOADERS = import.meta.glob('../../content/articles/*.md', {
-  query: '?raw',
-  import: 'default',
-})
+// 正文加载器：非 eager 的 glob，?article 由 articles-manifest 插件转成 { html, toc }
+const CONTENT_LOADERS = Object.fromEntries(
+  Object.entries(
+    import.meta.glob('../../content/articles/*.md', { query: '?article', import: 'default' })
+  ).map(([path, loader]) => [toSlug(path), loader])
+)
 
 const contentCache = new Map()
 
-/** 拉取某篇文章的正文（不含 frontmatter），带缓存。 */
+/** 拉取某篇文章的正文 { html, toc }，带缓存；不存在的 slug 返回 null。 */
 export async function loadArticleContent(slug) {
   if (contentCache.has(slug)) return contentCache.get(slug)
-
-  const entry = Object.entries(CONTENT_LOADERS).find(([path]) => toSlug(path) === slug)
-  if (!entry) return ''
-
-  const raw = await entry[1]()
-  const { content } = parseFrontmatter(String(raw))
+  const loader = CONTENT_LOADERS[slug]
+  if (!loader) return null
+  const content = await loader()
   contentCache.set(slug, content)
   return content
+}
+
+/** 同步读已加载的正文（路由守卫保证进入文章页时已经加载好）。 */
+export function getArticleContent(slug) {
+  return contentCache.get(slug) || null
 }
 
 /** 全部文章（元数据），按日期由新到旧——构建清单时已经排好，这里只是防手滑。 */
@@ -89,20 +86,18 @@ export const allTags = computed(() => {
 })
 
 /* ---------- 全文搜索索引 ----------
-   正文是懒加载的，所以全文索引也是：第一次搜索时把所有正文拉下来。
+   第一次搜索时拉 virtual:search-index（slug → 正文纯文本）。
    fullTextReady 是响应式的，就绪后搜索结果会自动补全「正文命中」的文章。 */
 export const fullTextReady = ref(false)
+let searchIndex = {}
 let fullTextLoading = null
 
 export function ensureFullTextIndex() {
   if (fullTextReady.value) return Promise.resolve()
-  if (!fullTextLoading) {
-    fullTextLoading = Promise.all(
-      allArticles.value.map(article => loadArticleContent(article.slug))
-    ).then(() => {
-      fullTextReady.value = true
-    })
-  }
+  fullTextLoading ||= import('virtual:search-index').then(module => {
+    searchIndex = module.default
+    fullTextReady.value = true
+  })
   return fullTextLoading
 }
 
@@ -116,7 +111,7 @@ export function searchArticles(keyword) {
 
   return allArticles.value.filter(article => {
     const fields = [article.title, article.summary, article.category, article.tags.join(' ')]
-    if (fullTextReady.value) fields.push(contentCache.get(article.slug) || '')
+    if (fullTextReady.value) fields.push(searchIndex[article.slug] || '')
     return fields.join('\n').toLowerCase().includes(query)
   })
 }

@@ -1,63 +1,38 @@
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { parseFrontmatter } from '../src/data/text-utils.js'
+import { buildManifest } from './articles-manifest.js'
+import { siteUrlFor } from '../src/site.js'
 
 /**
  * 构建时生成 sitemap.xml 和 robots.txt。
  *
- * 纯静态站没有服务端，这两样只能是构建产物。文章列表直接扫 content/articles/，
- * 所以加了新文章、改了日期，只要重新构建就会同步，不需要手工维护。
+ * 纯静态站没有服务端，这两样只能是构建产物。文章列表复用 articles-manifest 的 buildManifest，
+ * 加了新文章、改了日期，只要重新构建就会同步。
  *
- * 站点地址从 vite.config.js 的 base 推出来：base 是 '/run-blog/'，那就是项目站点
- * https://<用户>.github.io/run-blog/。换成自定义域名时，把 SITE_ORIGIN 改成域名、
- * base 改成 '/'，这里同样能推对。
+ * 站点地址 = src/site.js 的 SITE_ORIGIN + vite.config.js 的 base。
+ * 以前是 hash 路由（…/#/article/x），搜索引擎会把 # 后面全部忽略，整个 sitemap 等于只有首页一条；
+ * 现在每篇文章都有独立的真实地址。
  */
-const SITE_OWNER = 'suan2inf'
-const SITE_ORIGIN = `${SITE_OWNER}.github.io`
-
-function readArticles(articlesDir) {
-  let files = []
-  try {
-    files = readdirSync(articlesDir).filter(name => name.endsWith('.md'))
-  } catch {
-    return []
-  }
-
-  return files
-    .map(name => {
-      const raw = readFileSync(join(articlesDir, name), 'utf8')
-      const { data } = parseFrontmatter(raw)
-
-      return {
-        slug: name.replace(/\.md$/i, ''),
-        date: /^\d{4}-\d{2}-\d{2}$/.test(String(data.date || '')) ? String(data.date) : '',
-      }
-    })
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-}
-
 export function sitemapPlugin() {
   let siteUrl = '/'
 
   return {
     name: 'run-blog:sitemap',
-    apply: 'build',
+    // 只在浏览器产物的构建里生成；预渲染用的 SSR 构建不需要
+    apply: (config, env) => env.command === 'build' && !env.isSsrBuild,
     configResolved(config) {
-      const repo = String(config.base || '/').replace(/^\/|\/$/g, '')
-      siteUrl = repo ? `https://${SITE_ORIGIN}/${repo}/` : `https://${SITE_ORIGIN}/`
+      siteUrl = siteUrlFor(config.base)
     },
     generateBundle() {
-      const articles = readArticles(join(process.cwd(), 'content', 'articles'))
-      const today = new Date().toISOString().slice(0, 10)
+      const articles = buildManifest()
+      const latest = articles[0]?.date || new Date().toISOString().slice(0, 10)
+      const isDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value)
 
       const urls = [
-        { loc: siteUrl, lastmod: today, priority: '1.0' },
-        { loc: `${siteUrl}#/blog`, lastmod: today, priority: '0.8' },
-        { loc: `${siteUrl}#/about`, lastmod: today, priority: '0.5' },
+        { loc: siteUrl, lastmod: latest },
+        { loc: `${siteUrl}blog`, lastmod: latest },
+        { loc: `${siteUrl}about` },
         ...articles.map(a => ({
-          loc: `${siteUrl}#/article/${a.slug}`,
-          lastmod: a.date || today,
-          priority: '0.7',
+          loc: `${siteUrl}article/${encodeURIComponent(a.slug)}`,
+          lastmod: isDate(a.date) ? a.date : undefined,
         })),
       ]
 
@@ -65,8 +40,7 @@ export function sitemapPlugin() {
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
         ...urls.map(
-          u =>
-            `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><priority>${u.priority}</priority></url>`
+          u => `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}</url>`
         ),
         '</urlset>',
         '',

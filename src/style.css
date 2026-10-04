@@ -1,92 +1,49 @@
-/* ========== CSS 变量 ========== */
+/* ========== 设计变量 ==========
+   第六轮改版：简洁个人风。去掉了渐变、光晕、点阵这些装饰，
+   颜色只留一个强调色（墨蓝），其余都是黑白灰，靠字号、字重和留白分层次。
+   想换强调色只改 --accent / --accent-bg 两个（亮暗各一套）。 */
 :root {
-  --bg: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --text: #374151;
-  --text-secondary: #6b7280;
-  --heading: #111827;
-  --border: #e5e7eb;
-  /* 品牌色：紫罗兰，和 favicon 的紫色同一个家族（之前是通用蓝，和图标对不上）。
-     accent-soft 用来和 accent 配渐变（进度条、卡片边线）。 */
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --accent-bg: #f5f3ff;
-  --accent-soft: #a78bfa;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --sidebar-bg: #f8f9fa;
-  --radius: 8px;
-  /* 等宽字体栈：日期、字数、标签、页码这些「数据感」的小字用，
-     和正文的中文无衬线形成质感对比 */
-  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas,
-    'Liberation Mono', monospace;
+  --bg: #fcfcfb;
+  /* 次级底色：行内代码、代码块、引用、悬停底色 */
+  --surface: #f3f3f1;
+  --text: #33363b;
+  --heading: #16181c;
+  --muted: #74777d;
+  --border: #e6e6e3;
+  --accent: #2c5d8f;
+  --accent-bg: #e9eff6;
+  --radius: 6px;
 
-  /* 文章阅读区
-     原来这里是一整套"护眼纸质"配色（米黄底 + 褐色字），但页面底色是白的，
-     结果就是白底上凭空套了一个米黄色块，正文和正文之外两块颜色对不上。
-     现在底色调成透明，正文直接落在页面底色上；只保留正文专用的分隔线和标题色。 */
-  --paper-bg: transparent;
-  --paper-text: var(--text);
-  --paper-heading: var(--heading);
-  --paper-secondary: var(--text-secondary);
-  --paper-border: var(--border);
-  --paper-code-bg: var(--bg-secondary);
-  --paper-blockquote-bg: var(--bg-secondary);
-  --paper-blockquote-border: var(--border);
+  /* 全站内容宽度：导航、首页、文章正文、页脚共用这一个值，左边缘始终对齐。
+     文章正文按宽版设计（约 990px，一行五十多个汉字），公式和表格放得下 */
+  --site-width: 1040px;
+  --gutter: 24px;
 
-  /* 页面背景
-     blob：两团大范围、极低饱和度的彩色光晕，给页面一点色调倾向（紫调，跟品牌色走）
-     dot：点阵纹理的颜色 */
-  --bg-blob-1: #ede9fe;
-  --bg-blob-2: #e0e7ff;
-  --bg-dot: #cbd5e1;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei UI', 'Microsoft YaHei', 'Source Han Sans SC', 'Noto Sans CJK SC', system-ui,
+    sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* 字体栈：西文优先，后面跟中文字体。
-     浏览器会逐字符挑第一个有该字形的字体，所以中文会落到 PingFang SC / 微软雅黑，
-     而不是像原来那样写一堆西文字体后直接 sans-serif（中文只能吃系统默认，字形和字重都对不上）。
-     最后两个是 Windows / macOS 的中文字体兜底。 */
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
-    'Source Han Sans SC', 'Noto Sans CJK SC',
-    system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text);
-  color-scheme: light dark;
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
-[data-theme="dark"] {
-  --bg: #0f172a;
-  --bg-secondary: #1e293b;
-  --text: #cbd5e1;
-  --text-secondary: #94a3b8;
-  --heading: #f1f5f9;
-  --border: #334155;
-  --accent: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --accent-bg: #2e2452;
-  --accent-soft: #8b5cf6;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --sidebar-bg: #1e293b;
-
-  /* 深色底上要更亮一点才看得出来，同时保持很低的饱和度 */
-  --bg-blob-1: #4c1d95;
-  --bg-blob-2: #312e81;
-  --bg-dot: #334155;
-
-  /* 与亮色一致：不再单独给正文套一层底色 */
-  --paper-bg: transparent;
-  --paper-text: var(--text);
-  --paper-heading: var(--heading);
-  --paper-secondary: var(--text-secondary);
-  --paper-border: var(--border);
-  --paper-code-bg: var(--bg-secondary);
-  --paper-blockquote-bg: var(--bg-secondary);
-  --paper-blockquote-border: var(--border);
+[data-theme='dark'] {
+  --bg: #141517;
+  --surface: #1d1e21;
+  --text: #cdced1;
+  --heading: #ececea;
+  --muted: #8e9197;
+  --border: #2a2b2f;
+  --accent: #86acd6;
+  --accent-bg: #1e2a37;
+  color-scheme: dark;
 }
 
 /* ========== 全局重置 ========== */
@@ -101,42 +58,55 @@
 body {
   background: var(--bg);
   min-height: 100vh;
-  /* 主题切换时底色和文字色柔和平滑过渡，不是瞬间闪切 */
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 锚点跳转（含目录点击）时避开 64px 的吸顶导航 */
+/* 锚点跳转（含目录点击）时标题上方留一点空 */
 :where(h1, h2, h3, h4, h5, h6)[id] {
-  scroll-margin-top: 80px;
+  scroll-margin-top: 24px;
 }
 
 a {
-  color: var(--accent);
+  color: inherit;
   text-decoration: none;
-}
-
-a:hover {
-  color: var(--accent-hover);
 }
 
 img {
   max-width: 100%;
 }
 
-/* 选区配色跟着主题色走，替代浏览器默认的亮蓝 */
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* 内容容器：所有页面共用，宽度和左右留白统一 */
+.container {
+  width: 100%;
+  max-width: var(--site-width);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* 页面大标题（文章 / 关于 / 404） */
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--heading);
+}
+
 ::selection {
-  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 /* 键盘导航焦点框：只对 Tab 出来的焦点显示，鼠标点击不出现 */
 :where(a, button, input, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
-/* 平滑滚动：目录跳转、回到顶部都走它。
-   用户系统开了「减少动态效果」就全部关掉。 */
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
@@ -153,6 +123,12 @@ img {
   }
 }
 
+@media (max-width: 640px) {
+  :root {
+    --gutter: 18px;
+  }
+}
+
 /* ========== 打印 / 另存为 PDF ==========
    只留正文：导航、页脚、目录、浮动按钮、进度条、上下篇导航全部隐藏。 */
 @media print {
@@ -165,13 +141,9 @@ img {
   .toc-drawer,
   .prev-next,
   .article-footer,
-  .heading-anchor {
+  .heading-anchor,
+  .code-copy {
     display: none !important;
-  }
-
-  .main {
-    padding: 0 !important;
-    max-width: none !important;
   }
 
   body {

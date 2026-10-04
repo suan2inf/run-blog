@@ -1,15 +1,17 @@
 /**
- * 展示用的小工具，之前 formatDate 在 Home / ArticleCard / Article 里各抄了一份。
+ * 展示用的小工具，几个页面共用。
  */
 
-/** '2026-07-06' → '2026年7月6日'；空值返回空串。 */
+/**
+ * '2026-07-06' → '2026年7月6日'；空值返回空串。
+ * 直接拆字符串，不经过 Date：new Date('2026-07-06') 是 UTC 零点，
+ * 西半球的读者按本地时区显示会变成前一天，预渲染（构建机时区）和浏览器也可能对不上。
+ */
 export function formatDate(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(dateStr || ''))
+  if (!match) return String(dateStr || '')
+  const [, year, month, day] = match
+  return `${year}年${Number(month)}月${Number(day)}日`
 }
 
 /** 字数展示：过万用「x.x 万」压缩，否则原样。 */

@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 头像原图（网站用的是裁好的 public/avatar.webp，原图不进仓库）
+picture/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -2,27 +2,31 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。" />
 
-    <!-- 分享卡片：链接发到微信/群聊/Twitter 时能出标题和摘要。
-         文章页打开后 Article.vue 会把 og:title / og:description 覆盖成当前文章的内容。
-         注意 github.io 是共享域名，og:url 和 og:image 这里只能给通用的，
-         想要独立的卡片预览需要绑定自定义域名。 -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="算不尽的博客" />
-    <meta property="og:title" content="算不尽的博客" />
-    <meta property="og:description" content="一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。" />
-    <meta property="og:image" content="https://suan2inf.github.io/run-blog/og-cover.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="alternate" type="application/rss+xml" title="算不尽的博客" href="./feed.xml" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
-
-    <title>算不尽的博客</title>
+    <!-- 旧链接兼容：以前是 hash 路由（/run-blog/#/article/xxx?h=小节），
+         现在是普通路径（/run-blog/article/xxx#小节）。在页面渲染前就跳过去，读者无感。 -->
+    <script>
+      ;(function () {
+        var hash = location.hash
+        if (hash.indexOf('#/') !== 0) return
+        var rest = hash.slice(2)
+        var query = ''
+        var q = rest.indexOf('?')
+        if (q !== -1) {
+          query = rest.slice(q + 1)
+          rest = rest.slice(0, q)
+        }
+        var params = new URLSearchParams(query)
+        var section = params.get('h')
+        params.delete('h')
+        var search = params.toString()
+        var base = '%BASE_URL%'
+        location.replace(
+          base + rest.replace(/^\/+/, '') + (search ? '?' + search : '') + (section ? '#' + encodeURIComponent(section) : '')
+        )
+      })()
+    </script>
 
     <!-- 首屏主题：在样式计算前把 data-theme 设好。
          不内联的话，暗色用户会先看到一帧白底、JS 加载完才变暗。 -->
@@ -36,9 +40,25 @@
         document.documentElement.dataset.theme = t
       })()
     </script>
+
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <!-- iOS 添加到主屏幕 / 不支持 SVG 图标的浏览器用这张 PNG -->
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title="算不尽的博客" href="%BASE_URL%feed.xml" />
+    <meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141517" media="(prefers-color-scheme: dark)" />
+
+    <!-- 每页不同的 head：构建时 scripts/prerender.js 会把这两个标记之间的内容
+         换成当前页面的标题、摘要、规范链接和分享卡片（og:*）。这里是 dev 模式下的默认值。 -->
+    <!--head:start-->
+    <title>算不尽的博客</title>
+    <meta name="description" content="一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。" />
+    <meta property="og:title" content="算不尽的博客" />
+    <meta property="og:description" content="一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。" />
+    <!--head:end-->
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <div id="app"><!--app-html--></div>
+    <script type="module" src="/src/entry-client.js"></script>
   </body>
 </html>

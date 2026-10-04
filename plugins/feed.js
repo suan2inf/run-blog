@@ -1,18 +1,10 @@
-import { join } from 'node:path'
 import { buildManifest } from './articles-manifest.js'
+import { SITE_DESCRIPTION, SITE_TITLE, siteUrlFor } from '../src/site.js'
 
 /**
  * 构建时生成 RSS 2.0 订阅源（feed.xml）。
- *
- * 和 sitemap 一样只能生在构建产物里；文章元数据直接复用
- * articles-manifest 插件的 buildManifest，两份数据不会打架。
- *
- * 注意：路由是 hash 模式，item 链接是 …/#/article/slug 的形式。
- * RSS 阅读器把它当普通链接处理，点开能到文章页，没有问题。
+ * 文章元数据复用 articles-manifest 插件的 buildManifest，几份数据不会打架。
  */
-const SITE_OWNER = 'suan2inf'
-const SITE_ORIGIN = `${SITE_OWNER}.github.io`
-
 function escapeXml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -26,33 +18,35 @@ export function feedPlugin() {
 
   return {
     name: 'run-blog:feed',
-    apply: 'build',
+    // 只在浏览器产物的构建里生成；预渲染用的 SSR 构建不需要
+    apply: (config, env) => env.command === 'build' && !env.isSsrBuild,
     configResolved(config) {
-      const repo = String(config.base || '/').replace(/^\/|\/$/g, '')
-      siteUrl = repo ? `https://${SITE_ORIGIN}/${repo}/` : `https://${SITE_ORIGIN}/`
+      siteUrl = siteUrlFor(config.base)
     },
     generateBundle() {
-      const articles = buildManifest(join(process.cwd(), 'content', 'articles'))
+      const articles = buildManifest()
       const now = new Date().toUTCString()
 
       const items = articles
-        .map(
-          a => `  <item>
+        .map(a => {
+          const link = `${siteUrl}article/${encodeURIComponent(a.slug)}`
+          return `  <item>
     <title>${escapeXml(a.title)}</title>
-    <link>${siteUrl}#/article/${a.slug}</link>
-    <guid isPermaLink="true">${siteUrl}#/article/${a.slug}</guid>
-    <pubDate>${a.date ? new Date(`${a.date}T00:00:00Z`).toUTCString() : now}</pubDate>
+    <link>${link}</link>
+    <guid isPermaLink="true">${link}</guid>
+    <pubDate>${a.date ? new Date(`${a.date}T00:00:00+08:00`).toUTCString() : now}</pubDate>
     <description>${escapeXml(a.summary)}</description>
   </item>`
-        )
+        })
         .join('\n')
 
       const feed = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>算不尽的博客</title>
+  <title>${escapeXml(SITE_TITLE)}</title>
   <link>${siteUrl}</link>
-  <description>一名普通大学生的学习笔记：论文精读、技术分享、踩坑记录。</description>
+  <atom:link href="${siteUrl}feed.xml" rel="self" type="application/rss+xml" />
+  <description>${escapeXml(SITE_DESCRIPTION)}</description>
   <language>zh-CN</language>
   <lastBuildDate>${now}</lastBuildDate>
 ${items}
